@@ -1,8 +1,12 @@
 package main;
 
 import java.awt.*;
+import java.awt.event.*;
 import java.io.*;
 import java.util.Arrays;
+
+import graphics.DisplayUtil;
+import systemtray.Tray;
 
 public class AlwaysMusic {
 
@@ -12,14 +16,16 @@ public class AlwaysMusic {
 	private final static String ENABLE_STRING = "Enable", DISABLE_STRING = "Disable";
 	private final Image ENABLED_IMAGE = Toolkit.getDefaultToolkit().getImage(AlwaysMusic.class.getResource("/enabled.png"));
 	private final Image DISABLED_IMAGE = Toolkit.getDefaultToolkit().getImage(AlwaysMusic.class.getResource("/disabled.png"));
-	private static int CHECK_INTERVAL_SECONDS = 60;
+	private MenuItem statusMenuItem;
+	private static int INTERVAL_SECONDS_SHORT = 10, INTERVAL_SECONDS_MEDIUM = 5 * 60, INTERVAL_SECONDS_LONG = 45 * 60;
+	private static String INTERVAL_SHORT_STRING = "Short", INTERVAL_MEDIUM_STRING = "Medium", INTERVAL_LONG_STRING = "Long";
 	private boolean isEnabled = true;
 	private Tray tray;
 
 	public static void main(String...args) {
-		
+
 		System.setProperty("apple.awt.UIElement", "true"); // Prevent java icon from appearing in dock
-		
+
 		new AlwaysMusic();
 	}
 
@@ -31,9 +37,9 @@ public class AlwaysMusic {
 
 			final String sleepLine = getLineFromArray(SLEEP_LINE_STRING, getOutputFromCommand("pmset", "-g")); // Lists various system properties
 
-			if(isEnabled && !isAudioPlaying(sleepLine) && !DisplayUtility.isDisplayAsleep()) { // Only start music if no audio is currently being played by the device, screen is on & program is enabled
+			if(isEnabled && !isAudioPlaying(sleepLine) && !DisplayUtil.isDisplayAsleep()) { // Only start music if no audio is currently being played by the device, screen is on & program is enabled
 
-				if(PlayUtility.playMusic(PREFERRED_MUSIC_PLAYER))
+				if(PlayUtil.playMusic(PREFERRED_MUSIC_PLAYER))
 
 					System.out.println("Now playing...");
 
@@ -42,32 +48,56 @@ public class AlwaysMusic {
 					System.err.println("ERROR");
 			}
 
-			sleep(CHECK_INTERVAL_SECONDS * 1000);
+			sleep(INTERVAL_SECONDS_SHORT * 1000);
 		}
 	}
 
 	void setUpTray() {
 
-		final MenuItem item = new MenuItem(isEnabled ? DISABLE_STRING : ENABLE_STRING);
-		item.addActionListener(e -> {
+		statusMenuItem = new MenuItem(isEnabled ? DISABLE_STRING : ENABLE_STRING);
+		statusMenuItem.addActionListener(e -> toggleStatus());
 
-			if(isEnabled) {
+		tray = new Tray(ENABLED_IMAGE, 16, 15);
+		tray.addItems(statusMenuItem);
+		tray.addMouseListener(new MouseAdapter() { // Toggle enabled status on right click
 
-				setStatus(item, ENABLE_STRING, DISABLED_IMAGE);
-				isEnabled = false;
+			@Override
+			public void mousePressed(MouseEvent e) {
 
-			} else {
-
-				setStatus(item, DISABLE_STRING, ENABLED_IMAGE);
-				isEnabled = true;
+				if(e.getButton() == MouseEvent.BUTTON3)
+					
+					toggleStatus();
 			}
 		});
+		
+		MenuItem exitItem = new MenuItem("Exit");
+		exitItem.addActionListener(e -> quit());
+		
+		tray.addSeparator();
+		tray.addItems(exitItem);
 
-		
-		tray = new Tray(ENABLED_IMAGE, 16, 15);
-		tray.addItemsToTray(item);
-		
 		tray.pushTray();
+	}
+
+	void quit() {
+		
+		tray.remove();
+		System.exit(0);
+	}
+	
+	void toggleStatus() {
+
+		if(isEnabled) {
+
+			setStatus(statusMenuItem, ENABLE_STRING, DISABLED_IMAGE);
+			isEnabled = false;
+
+		} else {
+
+			setStatus(statusMenuItem, DISABLE_STRING, ENABLED_IMAGE);
+			isEnabled = true;
+			PlayUtil.playMusic(PREFERRED_MUSIC_PLAYER); // When re-enabled, music immediately starts to play
+		}
 	}
 
 	void setStatus(MenuItem item, String label, Image image) { // Sets properties for menu item when toggling state

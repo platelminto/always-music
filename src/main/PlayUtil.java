@@ -2,7 +2,7 @@ package main;
 
 import java.io.IOException;
 
-public abstract class PlayUtility {
+public abstract class PlayUtil {
 	
 	public static boolean playMusic(String playerType) {
 
