@@ -40,6 +40,6 @@ public abstract class PlayUtility {
 	
 	private static String[] defaultPlayCommand(String applicationName) { 
 		
-		return new String[] {"osascript", "-e", "tell application \"" + applicationName + "\" to play"}; // Default command to play music - most applications will use this format
+		return new String[] {"osascript", "-e", "tell application \"" + applicationName + "\" to play"}; // Default command to play music - most applications use this format
 	}
 }
