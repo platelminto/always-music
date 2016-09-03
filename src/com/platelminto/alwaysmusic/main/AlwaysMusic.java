@@ -1,12 +1,12 @@
-package main;
+package com.platelminto.alwaysmusic.main;
 
 import java.awt.*;
 import java.awt.event.*;
-import java.io.*;
 import java.util.Arrays;
 
-import graphics.DisplayUtil;
-import systemtray.Tray;
+import com.platelminto.alwaysmusic.commandline.CommandLineUtil;
+import com.platelminto.alwaysmusic.graphics.DisplayUtil;
+import com.platelminto.alwaysmusic.systemtray.Tray;
 
 public class AlwaysMusic {
 
@@ -17,7 +17,7 @@ public class AlwaysMusic {
 	private final Image ENABLED_IMAGE = Toolkit.getDefaultToolkit().getImage(AlwaysMusic.class.getResource("/enabled.png"));
 	private final Image DISABLED_IMAGE = Toolkit.getDefaultToolkit().getImage(AlwaysMusic.class.getResource("/disabled.png"));
 	private MenuItem statusMenuItem;
-	private static int INTERVAL_SECONDS_SHORT = 10, INTERVAL_SECONDS_MEDIUM = 5 * 60, INTERVAL_SECONDS_LONG = 45 * 60;
+	private static int INTERVAL_SECONDS_SHORT = 30, INTERVAL_SECONDS_MEDIUM = 5 * 60, INTERVAL_SECONDS_LONG = 45 * 60;
 	private static String INTERVAL_SHORT_STRING = "Short", INTERVAL_MEDIUM_STRING = "Medium", INTERVAL_LONG_STRING = "Long";
 	private boolean isEnabled = true;
 	private Tray tray;
@@ -30,12 +30,12 @@ public class AlwaysMusic {
 	}
 
 	AlwaysMusic() {
-
+		
 		setUpTray();
 
 		while(true) {
 			
-			final String sleepLine = getLineFromArray(SLEEP_LINE_STRING, getOutputFromCommand("pmset", "-g")); // Lists various system properties
+			final String sleepLine = getLineFromArray(SLEEP_LINE_STRING, CommandLineUtil.runCommand("pmset", "-g")); // Lists various system properties
 
 			if(isEnabled && !isAudioPlaying(sleepLine) && !DisplayUtil.isDisplayAsleep() && !DisplayUtil.isScreenSaverOn()) { // Only start music if no audio is currently being played by the device, screen is on & program is enabled
 
@@ -57,7 +57,7 @@ public class AlwaysMusic {
 		statusMenuItem = new MenuItem(isEnabled ? DISABLE_STRING : ENABLE_STRING);
 		statusMenuItem.addActionListener(e -> toggleStatus());
 
-		tray = new Tray(ENABLED_IMAGE, 16, 15);
+		tray = new Tray("AlwaysMusic", ENABLED_IMAGE, 16, 15);
 		tray.addItems(statusMenuItem);
 		tray.addMouseListener(new MouseAdapter() { // Toggle enabled status on right click
 
@@ -82,6 +82,7 @@ public class AlwaysMusic {
 	void quit() {
 		
 		tray.remove();
+		DisplayUtil.cleanUp();
 		System.exit(0);
 	}
 	
@@ -130,24 +131,5 @@ public class AlwaysMusic {
 				.filter(line -> line.trim().startsWith(initLine))
 				.findAny()
 				.get();
-	}
-
-	static String[] getOutputFromCommand(String...command) {
-
-		final ProcessBuilder builder = new ProcessBuilder(command);
-
-		try {
-
-			Process process = builder.start();
-			BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream())); // Hook into the output from running the command
-
-			return reader.lines().toArray(String[]::new);
-
-		} catch (IOException e) {
-
-			e.printStackTrace();
-		}
-
-		return null;
 	}
 }

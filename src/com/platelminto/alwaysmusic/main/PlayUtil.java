@@ -1,4 +1,4 @@
-package main;
+package com.platelminto.alwaysmusic.main;
 
 import java.io.IOException;
 

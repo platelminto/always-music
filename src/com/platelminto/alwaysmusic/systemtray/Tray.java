@@ -1,4 +1,4 @@
-package systemtray;
+package com.platelminto.alwaysmusic.systemtray;
 
 import java.awt.*;
 import java.awt.event.MouseAdapter;
@@ -10,7 +10,7 @@ public class Tray {
 	private final PopupMenu menu;
 	private final SystemTray tray = SystemTray.getSystemTray();
 
-	public Tray(Image image, int width, int height) {
+	public Tray(String name, Image image, int width, int height) {
 
 		this.width = width;
 		this.height = height;
@@ -18,7 +18,7 @@ public class Tray {
 		if(SystemTray.isSupported()) {
 
 			menu = new PopupMenu();
-			trayIcon = new TrayIcon(correctImage(image, width, height), "TrayIcon", menu);
+			trayIcon = new TrayIcon(correctImage(image, width, height), name, menu);
 
 		} else {
 
