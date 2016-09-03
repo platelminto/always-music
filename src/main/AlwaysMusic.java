@@ -34,10 +34,10 @@ public class AlwaysMusic {
 		setUpTray();
 
 		while(true) {
-
+			
 			final String sleepLine = getLineFromArray(SLEEP_LINE_STRING, getOutputFromCommand("pmset", "-g")); // Lists various system properties
 
-			if(isEnabled && !isAudioPlaying(sleepLine) && !DisplayUtil.isDisplayAsleep()) { // Only start music if no audio is currently being played by the device, screen is on & program is enabled
+			if(isEnabled && !isAudioPlaying(sleepLine) && !DisplayUtil.isDisplayAsleep() && !DisplayUtil.isScreenSaverOn()) { // Only start music if no audio is currently being played by the device, screen is on & program is enabled
 
 				if(PlayUtil.playMusic(PREFERRED_MUSIC_PLAYER))
 
@@ -106,7 +106,7 @@ public class AlwaysMusic {
 		tray.setTrayImage(image);
 	}
 
-	static void sleep(int milliseconds) {
+	public static void sleep(int milliseconds) {
 
 		try {
 
